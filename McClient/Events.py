@@ -215,8 +215,8 @@ class EventManager(BaseEventManager):
         self["recvFC"].add_handler(self.connection.respondFC)
         self["recv00"].add_handler(self.connection.respond00)
 
-    def handle_global(self, name, *args, **kwargs):
-        if "recv" in name:
-            self.recv_packet(name, *args, **kwargs)
-        if "sent" in name:
-            self.sent_packet(name, *args, **kwargs)
+    def handle_global(self, _name, *args, **kwargs):
+        if "recv" in _name:
+            self.recv_packet(_name, *args, **kwargs)
+        if "sent" in _name:
+            self.sent_packet(_name, *args, **kwargs)

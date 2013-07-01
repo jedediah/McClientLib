@@ -1,3 +1,4 @@
+import time
 from DataTypes import TypeReader, TypeWriter
 from Encryption import Socket
 from threading import Thread
@@ -31,6 +32,7 @@ class Connection(TypeReader, TypeWriter, Thread, NetworkHelper):
 
         self.socket = Socket()
         self.socket.connect(self.host, self.port)
+
         ### LOGIN ###
         self.sender.send_handshake()  # Send handshake(0x02)
         self.start()

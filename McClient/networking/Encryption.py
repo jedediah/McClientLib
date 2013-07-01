@@ -61,8 +61,8 @@ class Socket(object):
         self.socket = self.unencrypted_socket
         self.file = self.unencrypted_file
 
-    def wait4data(self):
-        select([self.socket], [], [])
+    def wait4data(self, timeout=None):
+        return len(select([self.socket], [], [], timeout)[0]) > 0
 
     def connect(self, host, port=25565):
         self.socket.connect((host, port))

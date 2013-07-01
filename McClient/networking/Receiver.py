@@ -13,7 +13,7 @@ class BaseReceiver(object):
             return getattr(self, "handle" + pid)
         except AttributeError:
             if not pid:
-                raise ConnectionClosed("Server terminated connection.")
+                raise ConnectionClosed("Server terminated connection (pid={0})".format(pid))
 
             raise HandlerError("Object has no handler '%s'" % pid)
 
@@ -50,6 +50,17 @@ class Receiver(BaseReceiver):
                     }
 
         return toReturn
+
+    # def handle02(self):
+    #     protocol_version = self.connection.read_byte()
+    #     username = self.connection.read_string()
+    #     server_host = self.connection.read_string()
+    #     server_port = self.connection.read_int()
+    #     toReturn = {'protocol_version': protocol_version,
+    #                 'username': username,
+    #                 'server_host': server_host,
+    #                 'server_port': server_port}
+    #     return toReturn
 
     def handle03(self):
         message = self.connection.read_string()
@@ -118,8 +129,8 @@ class Receiver(BaseReceiver):
         pitch = self.connection.read_float()
         on_ground = self.connection.read_boolean()
         toReturn = {"x": x,
-                    "stance": stance,
                     "y": y,
+                    "stance": stance,
                     "z": z,
                     "yaw": yaw,
                     "pitch": pitch,
@@ -816,7 +827,7 @@ class Receiver(BaseReceiver):
     def handleD0(self):
         position = self.connection.read_byte()
         if position == 0:
-            position == "list"
+            position = "list"
         if position == 1:
             position = "sidebar"
         if position == 2:
@@ -839,14 +850,14 @@ class Receiver(BaseReceiver):
         friendly_fire = None
         players = []
 
-        if mode == 0 or 2:
+        if mode in (0, 2):
             team_display_name = self.connection.read_string()
             team_prefix = self.connection.read_string()
             team_suffix = self.connection.read_string()
             friendly_fire = self.connection.read_boolean()
 
-        if mode == 0 or 3 or 4:
-            player_count = self.read_short()
+        if mode in (0, 3, 4):
+            player_count = self.connection.read_short()
             for i in range(player_count):
                 players.append(self.connection.read_string())
 
