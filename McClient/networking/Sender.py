@@ -3,7 +3,7 @@ from Utils import hex2str
 
 class BaseSender(object):
     """Base class for Senders."""
-    protocol_version = 0
+    protocol_version = 74
 
     def __init__(self, connection):
         self.connection = connection
@@ -14,8 +14,6 @@ class BaseSender(object):
 
 
 class Sender(BaseSender):
-    protocol_version = 61
-
     def send_keepalive(self, KID):
         self.write_id("\x00")
         self.connection.write_int(KID)
@@ -145,8 +143,8 @@ class Sender(BaseSender):
     def send_player_abilities(self, flags, flying_speed, walking_speed):
         self.write_id("\xCA")
         self.connection.write_byte(flags)
-        self.connection.write_byte(flying_speed)
-        self.connection.write_byte(walking_speed)
+        self.connection.write_float(flying_speed)
+        self.connection.write_float(walking_speed)
 
     def send_tab_complete(self, text):
         self.write_id("\xCB")

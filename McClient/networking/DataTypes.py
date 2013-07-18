@@ -15,6 +15,7 @@ data_types = {
     "uint":   'I',
     "double": 'd',
     "long":   'q',
+    "ulong":  'Q',
 }
 
 
@@ -57,6 +58,10 @@ class TypeReader(object):
 
     def read_long(self):
         data = self._unpack("long", self.read(8))
+        return data
+
+    def read_ulong(self):
+        data = self._unpack("ulong", self.read(8))
         return data
 
     def read_boolean(self):

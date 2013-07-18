@@ -1,3 +1,4 @@
+from uuid import UUID
 from Exceptions import HandlerError, ConnectionClosed
 
 
@@ -19,13 +20,14 @@ class BaseReceiver(object):
 
     def data_received(self):
         pid = self.connection.read_id()
+        # print "recv {}".format(pid)
         handler = self._get_handler(pid)
         data = handler()
         self.connection.eventmanager["recv" + pid](**data)
 
 
 class Receiver(BaseReceiver):
-    protocol_version = 61
+    protocol_version = 74
 
     def handle00(self):
         KID = self.connection.read_int()
@@ -97,7 +99,7 @@ class Receiver(BaseReceiver):
         return toReturn
 
     def handle08(self):
-        health = self.connection.read_short()
+        health = self.connection.read_float()
         food = self.connection.read_short()
         saturation = self.connection.read_float()
         toReturn = {"health": health,
@@ -378,8 +380,10 @@ class Receiver(BaseReceiver):
     def handle27(self):
         EID = self.connection.read_int()
         vehicleID = self.connection.read_int()
+        leash = self.connection.read_boolean()
         toReturn = {"EID": EID,
-                    "vehicleID": vehicleID}
+                    "vehicleID": vehicleID,
+                    "leash": leash}
 
         return toReturn
 
@@ -420,6 +424,33 @@ class Receiver(BaseReceiver):
                     "total_exp": total_exp}
 
         return toReturn
+
+    def handle2C(self):
+        EID = self.connection.read_int()
+
+        property_count = self.connection.read_int()
+        properties = {}
+
+        for _ in xrange(property_count):
+            name = self.connection.read_string()
+            base = self.connection.read_double()
+
+            modifier_count = self.connection.read_short()
+            modifiers = {}
+
+            for _ in xrange(modifier_count):
+                msb = self.connection.read_ulong()
+                lsb = self.connection.read_ulong()
+                amount = self.connection.read_double()
+                operation = self.connection.read_byte()
+                uuid = UUID(int=(msb << 64) | lsb)
+                modifiers[uuid] = (operation, amount)
+
+            properties[name] = dict(base=base,
+                                    modifiers=modifiers)
+
+        return dict(EID=EID,
+                    properties=properties)
 
     def handle33(self):
         x = self.connection.read_int()
@@ -750,7 +781,7 @@ class Receiver(BaseReceiver):
 
     def handleC8(self):
         statID = self.connection.read_int()
-        amount = self.connection.read_byte()
+        amount = self.connection.read_int()
         toReturn = {"statID": statID,
                     "amount": amount}
 
@@ -768,8 +799,8 @@ class Receiver(BaseReceiver):
 
     def handleCA(self):
         flags = self.connection.read_byte()  # TODO Decode flags?
-        fly_speed = self.connection.read_byte()
-        walk_speed = self.connection.read_byte()
+        fly_speed = self.connection.read_float()
+        walk_speed = self.connection.read_float()
 
         toReturn = {"flags": flags,
                     "fly_speed": fly_speed,
@@ -784,6 +815,19 @@ class Receiver(BaseReceiver):
         toReturn = {"text": text}
 
         return toReturn
+
+    def handleCC(self):
+        locale = self.connection.read_string()
+        view_distance = self.connection.read_byte()
+        chat_flags = self.connection.read_byte()
+        difficulty = self.connection.read_byte()
+        show_cape = self.connection.read_boolean()
+
+        return dict(locale=locale,
+                    view_distance=view_distance,
+                    chat_flags=chat_flags,
+                    difficulty=difficulty,
+                    show_cape=show_cape)
 
     def handleCE(self):
         name = self.connection.read_string()
